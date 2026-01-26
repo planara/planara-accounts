@@ -1,1 +1,1 @@
-# planara-accounts
+![build](https://github.com/planara/planara-accounts/actions/workflows/build.yml/badge.svg)
