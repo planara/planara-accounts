@@ -28,8 +28,8 @@ builder.Services
     .AddErrorFilter<ErrorFilter>()
     .AddQueryType(m => m.Name(OperationTypeNames.Query))
     .AddType<Query>()
-    // .AddMutationType(m => m.Name(OperationTypeNames.Mutation))
-    // .AddType<Mutation>()
+    .AddMutationType(m => m.Name(OperationTypeNames.Mutation))
+    .AddType<Mutation>()
     .AddAuthorization() 
     .AddFluentValidation(options =>
     {
