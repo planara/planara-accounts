@@ -4,16 +4,26 @@ using HotChocolate.Types;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Planara.Accounts.Data;
-using Planara.Accounts.Data.Domain;
+using Planara.Accounts.Responses;
 using Planara.Common.Auth.Claims;
+using Planara.Common.Exceptions;
 
 namespace Planara.Accounts.GraphQL;
 
 [ExtendObjectType(OperationTypeNames.Query)]
 public class Query
 {
+    /// <summary>
+    /// Получение профиля пользователя
+    /// </summary>
+    /// <param name="dataContext"></param>
+    /// <param name="claimsPrincipal"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    /// <exception cref="NotFoundException"></exception>
     [Authorize]
-    public async Task<Profile?> GetProfile(
+    [GraphQLDescription("Получение профиля пользователя")]
+    public async Task<ProfileResponse> GetProfile(
         [Service] DataContext dataContext,
         ClaimsPrincipal claimsPrincipal,
         CancellationToken cancellationToken)
@@ -24,7 +34,17 @@ public class Query
             .AsNoTracking()
             .Where(x => x.UserId == userId)
             .FirstOrDefaultAsync(cancellationToken);
+        
+        if (profile is null)
+            throw new NotFoundException();
 
-        return profile;
+        return new ProfileResponse
+        {
+            Name = profile?.Name,
+            Surname = profile?.Surname,
+            DisplayName = profile?.DisplayName ?? String.Empty,
+            Username =  profile?.Username,
+            Bio =  profile?.Bio,
+        };
     }
 }
