@@ -13,7 +13,16 @@ namespace Planara.Accounts.GraphQL;
 [ExtendObjectType(OperationTypeNames.Query)]
 public class Query
 {
+    /// <summary>
+    /// Получение профиля пользователя
+    /// </summary>
+    /// <param name="dataContext"></param>
+    /// <param name="claimsPrincipal"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    /// <exception cref="NotFoundException"></exception>
     [Authorize]
+    [GraphQLDescription("Получение профиля пользователя")]
     public async Task<ProfileResponse> GetProfile(
         [Service] DataContext dataContext,
         ClaimsPrincipal claimsPrincipal,

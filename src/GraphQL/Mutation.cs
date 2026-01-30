@@ -52,6 +52,8 @@ public class Mutation
         Patch(request.AvatarUrl, profile.AvatarUrl,v => profile.AvatarUrl = v);
         Patch(request.Bio, profile.Bio,v => profile.Bio = v);
         
+        profile.UpdatedAt = DateTime.UtcNow;
+        
         await dataContext.SaveChangesAsync(cancellationToken);
         
         return new ProfileResponse
@@ -70,7 +72,7 @@ public class Mutation
     /// </summary>
     private static void Patch(Optional<string?> opt, string? oldValue, Action<string> set)
     {
-        if (opt.HasValue && opt.Value is not null && String.Equals(opt.Value, oldValue, StringComparison.Ordinal))
+        if (opt.HasValue && opt.Value is not null && !String.Equals(opt.Value, oldValue, StringComparison.Ordinal))
             set(opt.Value);
     }
 }
