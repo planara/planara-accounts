@@ -7,11 +7,14 @@ using Planara.Accounts.Workers;
 using Planara.Common.Auth.Jwt;
 using Planara.Common.Configuration;
 using Planara.Common.Database;
+using Planara.Common.GraphQL;
 using Planara.Common.GraphQL.Filters;
+using Planara.Common.GraphQL.Fusion;
 using Planara.Common.Host;
 using Planara.Common.Kafka;
 using Planara.Common.Validators;
 using Planara.Kafka.Extensions;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +40,15 @@ builder.Services
         options.UseDefaultErrorMapper();
     })
     .ModifyRequestOptions(o => o.IncludeExceptionDetails = builder.Environment.IsDevelopment())
+    .PublishSchemaToRedis(
+        _ =>
+            ConnectionMultiplexer.Connect(
+                builder.Configuration.GetValue<string>("DbConnections:Redis:ConnectionString")!,
+                c => c.CertificateValidation += (_, _, _, _) => true
+            ),
+        builder.Configuration.GetValue<string>("GraphQL:Name")!,
+        WellKnownSchema.Accounts
+    )
     .InitializeOnStartup();
 
 builder.Services.AddDataContext<DataContext>(
