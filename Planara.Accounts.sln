@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Planara.Accounts", "src\Planara.Accounts.csproj", "{8F91775B-8852-4EF0-B86C-C31A1A0408A0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Planara.Accounts.Tests", "tests\Planara.Accounts.Tests.csproj", "{E2DADCCF-95D0-4557-99F9-8C95F236E277}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{8F91775B-8852-4EF0-B86C-C31A1A0408A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F91775B-8852-4EF0-B86C-C31A1A0408A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F91775B-8852-4EF0-B86C-C31A1A0408A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2DADCCF-95D0-4557-99F9-8C95F236E277}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2DADCCF-95D0-4557-99F9-8C95F236E277}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2DADCCF-95D0-4557-99F9-8C95F236E277}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2DADCCF-95D0-4557-99F9-8C95F236E277}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
