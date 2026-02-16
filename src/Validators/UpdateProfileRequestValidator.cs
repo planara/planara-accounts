@@ -10,28 +10,22 @@ public class UpdateProfileRequestValidator: AbstractValidator<UpdateProfileReque
     {
         RuleFor(x => x.Username)
             .Must(BeNonEmptyWhenProvided)
-            .WithMessage("Username must not be empty.");
+            .WithMessage("Имя пользователя не может быть пустым.");
 
         RuleFor(x => x.DisplayName)
             .Must(BeNonEmptyWhenProvided)
-            .WithMessage("DisplayName must not be empty.");
-        
-        RuleFor(x => x.Username)
-            .Must(BeNonEmptyWhenProvided)
-            .WithMessage("Username must not be empty.");
-
-        RuleFor(x => x.DisplayName)
-            .Must(BeNonEmptyWhenProvided)
-            .WithMessage("DisplayName must not be empty.");
+            .WithMessage("Отображаемое имя не может быть пустым.");
 
         RuleFor(x => x)
             .Must(NotContainEmoji)
-            .WithMessage("Emojis are not allowed in profile fields.");
+            .WithMessage("Использование эмодзи в полях профиля запрещено.");
     }
     
     private static bool BeNonEmptyWhenProvided(Optional<string?> opt)
     {
         if (!opt.HasValue) return true;
+        
+        if (opt.Value is null) return true;
         
         return !string.IsNullOrWhiteSpace(opt.Value);
     }
