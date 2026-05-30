@@ -68,7 +68,7 @@ public class Mutation
     }
     
     /// <summary>
-    /// Обновление полей сущности только при необходмости (передали новое значение)
+    /// Обновление полей сущности только при необходимости (передали новое значение)
     /// </summary>
     private static void Patch(Optional<string?> opt, string? oldValue, Action<string> set)
     {

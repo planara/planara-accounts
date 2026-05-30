@@ -1,5 +1,6 @@
 ![build](https://github.com/planara/planara-accounts/actions/workflows/build.yml/badge.svg)
 ![deploy](https://github.com/planara/planara-accounts/actions/workflows/deploy.yml/badge.svg?branch=main)
+![publish-k3s](https://github.com/planara/planara-accounts/actions/workflows/publish-k3s.yml/badge.svg?branch=main)
 ![version](https://img.shields.io/github/v/tag/planara/planara-accounts?sort=semver)
 [![Codecov](https://codecov.io/gh/planara/planara-accounts/branch/main/graph/badge.svg)](https://codecov.io/gh/planara/planara-accounts)
 
