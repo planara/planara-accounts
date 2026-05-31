@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Planara.Accounts.Data;
@@ -14,6 +15,7 @@ public class KafkaConsumerWorker(
     IServiceScopeFactory scopeFactory)
     : BackgroundService
 {
+    [ExcludeFromCodeCoverage]
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation("Kafka background service started.");
@@ -22,42 +24,7 @@ public class KafkaConsumerWorker(
         {
             try
             {
-                var result = await consumer.ConsumeAsync("Auth", cancellationToken);
-                
-                if (result?.Message?.Value is null) continue;
-
-                var message = result.Message.Value;
-                
-                logger.LogInformation(
-                    "Kafka: message received from Auth: userId -> {Id}, email -> {Message}",
-                    message.UserId, message.Email);
-                
-                using var scope = scopeFactory.CreateScope();
-                var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
-                
-                try
-                {
-                    var username = message.Email.Split('@')[0];
-                    dataContext.Profiles.Add(new Profile
-                    {
-                        UserId = message.UserId,
-                        DisplayName = username,
-                        Username = username,
-                        Name = null,
-                        Surname = null,
-                        AvatarUrl = null,
-                        Bio = null
-                    });
-
-                    await dataContext.SaveChangesAsync(cancellationToken);
-                    
-                    await consumer.CommitAsync(result, cancellationToken);
-                }
-                catch (DbUpdateException e) when (IsUniqueViolation(e))
-                {
-                    logger.LogInformation("Profile already exists for userId={UserId}. Skipping.", message.UserId);
-                    await consumer.CommitAsync(result, cancellationToken);
-                }
+                await ConsumeOnce(cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -86,12 +53,57 @@ public class KafkaConsumerWorker(
             logger.LogError(ex, "Error closing Kafka consumer.");
         }
     }
-    
+
+    public async Task ConsumeOnce(CancellationToken cancellationToken)
+    {
+        var result = await consumer.ConsumeAsync("Auth", cancellationToken);
+
+        if (result?.Message?.Value is null)
+            return;
+
+        var message = result.Message.Value;
+
+        logger.LogInformation(
+            "Kafka: message received from Auth: userId -> {Id}, email -> {Message}",
+            message.UserId,
+            message.Email);
+
+        using var scope = scopeFactory.CreateScope();
+        var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+        try
+        {
+            var username = message.Email.Split('@')[0];
+
+            dataContext.Profiles.Add(new Profile
+            {
+                UserId = message.UserId,
+                DisplayName = username,
+                Username = username,
+                Name = null,
+                Surname = null,
+                AvatarUrl = null,
+                Bio = null
+            });
+
+            await dataContext.SaveChangesAsync(cancellationToken);
+
+            await consumer.CommitAsync(result, cancellationToken);
+        }
+        catch (DbUpdateException e) when (IsUniqueViolation(e))
+        {
+            logger.LogInformation("Profile already exists for userId={UserId}. Skipping.", message.UserId);
+
+            await consumer.CommitAsync(result, cancellationToken);
+        }
+    }
+
     /// <summary>
-    /// Проверка исключения на нарушение правила индекса IsUnique
-    /// "23505" код ошибки postgres
+    /// Проверка исключения на нарушение правила индекса IsUnique.
+    /// "23505" — код ошибки PostgreSQL.
     /// </summary>
     /// <param name="e">Исключение</param>
+    [ExcludeFromCodeCoverage]
     private static bool IsUniqueViolation(DbUpdateException e)
         => e.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
 }
