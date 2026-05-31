@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -5,23 +6,28 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Planara.Accounts.Data;
+using Planara.Accounts.Tests.Fakes;
+using Planara.Accounts.Workers;
+using Planara.Common.Kafka;
+using Planara.Kafka.Interfaces;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
 namespace Planara.Accounts.Tests;
 
-public class ApiTestWebAppFactory: WebApplicationFactory<Program>, IAsyncLifetime
+public class ApiTestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:latest")
         .WithDatabase("accounts-test")
         .WithUsername("postgres")
         .WithPassword("postgres")
         .Build();
-    
+
     private readonly RedisContainer _redis = new RedisBuilder("redis:latest").Build();
-    
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Test");
@@ -34,6 +40,35 @@ public class ApiTestWebAppFactory: WebApplicationFactory<Program>, IAsyncLifetim
 
             services.AddDbContext<DataContext>(opt =>
                 opt.UseNpgsql(_postgres.GetConnectionString()));
+            
+            services.RemoveAll<IKafkaConsumer<UserCreatedMessage>>();
+
+            services.RemoveAll<IHostedService>();
+
+            services.AddSingleton<FakeKafkaConsumer>();
+
+            services.AddSingleton<IKafkaConsumer<UserCreatedMessage>>(sp =>
+                sp.GetRequiredService<FakeKafkaConsumer>());
+
+            services.AddScoped<KafkaConsumerWorker>();
+
+            services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultScheme = TestAuthHandler.AuthenticationScheme;
+                    options.DefaultAuthenticateScheme = TestAuthHandler.AuthenticationScheme;
+                    options.DefaultChallengeScheme = TestAuthHandler.AuthenticationScheme;
+                })
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                    TestAuthHandler.AuthenticationScheme,
+                    _ => { });
+
+            services.PostConfigure<AuthenticationOptions>(options =>
+            {
+                options.DefaultScheme = TestAuthHandler.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = TestAuthHandler.AuthenticationScheme;
+                options.DefaultChallengeScheme = TestAuthHandler.AuthenticationScheme;
+            });
         });
         
         builder.ConfigureAppConfiguration((config) =>
@@ -45,7 +80,7 @@ public class ApiTestWebAppFactory: WebApplicationFactory<Program>, IAsyncLifetim
                     _redis.GetConnectionString()!),
                 new KeyValuePair<string, string>(
                     "GraphQL:Name", 
-                    "test-auth-schema")
+                    "test-accounts-schema")
             }!);
         });
     }

@@ -172,4 +172,61 @@ public class ValidatorsTests
 
         res.IsValid.Should().BeTrue();
     }
+    
+    [Theory]
+    [InlineData("user😀")]
+    [InlineData("user🌍")]
+    public void UpdateProfile_UsernameContainsDifferentEmojiRanges_Fails(string username)
+    {
+        var validator = new UpdateProfileRequestValidator();
+
+        var request = new UpdateProfileRequest
+        {
+            Username = new Optional<string?>(username),
+        };
+
+        var res = validator.Validate(request);
+
+        res.IsValid.Should().BeFalse();
+        res.Errors.Should().Contain(e =>
+            e.ErrorMessage.Contains("эмодзи", StringComparison.OrdinalIgnoreCase));
+    }
+    
+    [Theory]
+    [InlineData("user\uFE0F")]
+    [InlineData("user\uFE0E")]
+    public void UpdateProfile_UsernameContainsVariationSelector_Fails(string username)
+    {
+        var validator = new UpdateProfileRequestValidator();
+
+        var request = new UpdateProfileRequest
+        {
+            Username = new Optional<string?>(username),
+        };
+
+        var res = validator.Validate(request);
+
+        res.IsValid.Should().BeFalse();
+        res.Errors.Should().Contain(e =>
+            e.ErrorMessage.Contains("эмодзи", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Theory]
+    [InlineData("user\u2600")]
+    [InlineData("user\u27BF")]
+    public void UpdateProfile_UsernameContainsEmojiSymbolRange_Fails(string username)
+    {
+        var validator = new UpdateProfileRequestValidator();
+
+        var request = new UpdateProfileRequest
+        {
+            Username = new Optional<string?>(username),
+        };
+
+        var res = validator.Validate(request);
+
+        res.IsValid.Should().BeFalse();
+        res.Errors.Should().Contain(e =>
+            e.ErrorMessage.Contains("эмодзи", StringComparison.OrdinalIgnoreCase));
+    }
 }

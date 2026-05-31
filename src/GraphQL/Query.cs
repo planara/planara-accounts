@@ -40,11 +40,12 @@ public class Query
 
         return new ProfileResponse
         {
-            Name = profile?.Name,
-            Surname = profile?.Surname,
-            DisplayName = profile?.DisplayName ?? String.Empty,
-            Username =  profile?.Username,
-            Bio =  profile?.Bio,
+            Name = profile.Name,
+            Surname = profile.Surname,
+            DisplayName = profile.DisplayName,
+            Username = profile.Username,
+            AvatarUrl = profile.AvatarUrl,
+            Bio = profile.Bio,
         };
     }
 }

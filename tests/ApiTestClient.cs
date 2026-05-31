@@ -18,10 +18,21 @@ public static class ApiTestClient
         };
 
         var resp = await client.PostAsJsonAsync("/graphql", payload, ct);
-        resp.EnsureSuccessStatusCode();
+        var content = await resp.Content.ReadAsStringAsync(ct);
 
-        var json = await resp.Content.ReadFromJsonAsync<JsonDocument>(cancellationToken: ct);
-        return json ?? throw new InvalidOperationException("Empty GraphQL response");
+        if (!resp.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException(
+                $"GraphQL request failed with status {(int)resp.StatusCode} {resp.StatusCode}. Body: {content}"
+            );
+        }
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            throw new InvalidOperationException("Empty GraphQL response");
+        }
+
+        return JsonDocument.Parse(content);
     }
 
     public static JsonElement? GetErrors(this JsonDocument doc)
@@ -29,4 +40,10 @@ public static class ApiTestClient
 
     public static JsonElement GetData(this JsonDocument doc)
         => doc.RootElement.GetProperty("data");
+
+    public static void AsUser(this HttpClient client, Guid userId)
+    {
+        client.DefaultRequestHeaders.Remove("X-Test-UserId");
+        client.DefaultRequestHeaders.Add("X-Test-UserId", userId.ToString());
+    }
 }
