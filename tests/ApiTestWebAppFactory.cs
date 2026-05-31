@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -68,6 +69,19 @@ public class ApiTestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifeti
                 options.DefaultAuthenticateScheme = TestAuthHandler.AuthenticationScheme;
                 options.DefaultChallengeScheme = TestAuthHandler.AuthenticationScheme;
             });
+        });
+        
+        builder.ConfigureAppConfiguration((config) =>
+        {
+            config.AddInMemoryCollection(new[]
+            {
+                new KeyValuePair<string, string>(
+                    "DbConnections:Redis:ConnectionString", 
+                    _redis.GetConnectionString()!),
+                new KeyValuePair<string, string>(
+                    "GraphQL:Name", 
+                    "test-accounts-schema")
+            }!);
         });
     }
 
