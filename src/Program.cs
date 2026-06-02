@@ -58,11 +58,12 @@ builder.Services.AddDataContext<DataContext>(
 );
 
 builder.Services
-    .AddKafkaConsumer<UserCreatedMessage>(builder.Configuration);
+    .AddKafkaConsumer<UserCreatedMessage>(builder.Configuration)
+    .AddKafkaConsumer<UserDeletedMessage>(builder.Configuration);
 
-builder.Services.AddScoped<KafkaConsumerWorker>();
-if (!builder.Environment.IsEnvironment("Test"))
-    builder.Services.AddHostedService<KafkaConsumerWorker>();
+builder.Services
+    .AddHostedService<UserCreatedKafkaConsumerWorker>()
+    .AddHostedService<UserDeletedKafkaConsumerWorker>();
 
 var app = builder.Build();
 

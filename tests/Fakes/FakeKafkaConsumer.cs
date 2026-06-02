@@ -1,39 +1,38 @@
 using Confluent.Kafka;
-using Planara.Common.Kafka;
 using Planara.Kafka.Interfaces;
 
 namespace Planara.Accounts.Tests.Fakes;
 
-public class FakeKafkaConsumer : IKafkaConsumer<UserCreatedMessage>
+public class FakeKafkaConsumer<TMessage> : IKafkaConsumer<TMessage>
+    where TMessage : class
 {
-    public Queue<ConsumeResult<string, UserCreatedMessage>?> Results { get; } = new();
+    public Queue<ConsumeResult<string, TMessage>?> Results { get; } = [];
 
-    public List<ConsumeResult<string, UserCreatedMessage>> Committed { get; } = [];
+    public List<ConsumeResult<string, TMessage>> Committed { get; } = [];
+
+    public List<string> ConsumedTopicKeys { get; } = [];
 
     public bool Closed { get; private set; }
 
-    public void Reset()
-    {
-        Results.Clear();
-        Committed.Clear();
-        Closed = false;
-    }
-
-    public Task<ConsumeResult<string, UserCreatedMessage>?> ConsumeAsync(
+    public Task<ConsumeResult<string, TMessage>?> ConsumeAsync(
         string topicKey,
         CancellationToken cancellationToken = default)
     {
-        if (Results.Count == 0)
-            return Task.FromResult<ConsumeResult<string, UserCreatedMessage>?>(null);
+        ConsumedTopicKeys.Add(topicKey);
 
-        return Task.FromResult(Results.Dequeue());
+        var result = Results.Count > 0
+            ? Results.Dequeue()
+            : null;
+
+        return Task.FromResult(result);
     }
 
     public Task CommitAsync(
-        ConsumeResult<string, UserCreatedMessage> result,
+        ConsumeResult<string, TMessage> result,
         CancellationToken cancellationToken = default)
     {
         Committed.Add(result);
+
         return Task.CompletedTask;
     }
 
@@ -42,35 +41,49 @@ public class FakeKafkaConsumer : IKafkaConsumer<UserCreatedMessage>
         Closed = true;
     }
 
-    public static ConsumeResult<string, UserCreatedMessage> CreateResult(UserCreatedMessage message)
+    public void Reset()
     {
-        return new ConsumeResult<string, UserCreatedMessage>
+        Results.Clear();
+        Committed.Clear();
+        ConsumedTopicKeys.Clear();
+        Closed = false;
+    }
+
+    public static ConsumeResult<string, TMessage> CreateResult(TMessage message)
+    {
+        return new ConsumeResult<string, TMessage>
         {
-            Message = new Message<string, UserCreatedMessage>
+            Message = new Message<string, TMessage>
             {
-                Key = message.UserId.ToString("N"),
+                Key = Guid.NewGuid().ToString("N"),
                 Value = message
-            }
+            },
+            Partition = new Partition(0),
+            Offset = new Offset(0)
         };
     }
 
-    public static ConsumeResult<string, UserCreatedMessage> CreateNullMessageResult()
+    public static ConsumeResult<string, TMessage> CreateNullMessageResult()
     {
-        return new ConsumeResult<string, UserCreatedMessage>
+        return new ConsumeResult<string, TMessage>
         {
-            Message = new Message<string, UserCreatedMessage>
-            {
-                Key = "null",
-                Value = null!
-            }
+            Message = null,
+            Partition = new Partition(0),
+            Offset = new Offset(0)
         };
     }
-    
-    public static ConsumeResult<string, UserCreatedMessage> CreateNullInnerMessageResult()
+
+    public static ConsumeResult<string, TMessage> CreateNullInnerMessageResult()
     {
-        return new ConsumeResult<string, UserCreatedMessage>
+        return new ConsumeResult<string, TMessage>
         {
-            Message = null!
+            Message = new Message<string, TMessage>
+            {
+                Key = Guid.NewGuid().ToString("N"),
+                Value = null!
+            },
+            Partition = new Partition(0),
+            Offset = new Offset(0)
         };
     }
 }
