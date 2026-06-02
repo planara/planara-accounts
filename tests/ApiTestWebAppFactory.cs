@@ -42,15 +42,20 @@ public class ApiTestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifeti
                 opt.UseNpgsql(_postgres.GetConnectionString()));
             
             services.RemoveAll<IKafkaConsumer<UserCreatedMessage>>();
-
+            services.RemoveAll<IKafkaConsumer<UserDeletedMessage>>();
             services.RemoveAll<IHostedService>();
 
-            services.AddSingleton<FakeKafkaConsumer>();
+            services.AddSingleton<FakeKafkaConsumer<UserCreatedMessage>>();
+            services.AddSingleton<FakeKafkaConsumer<UserDeletedMessage>>();
 
             services.AddSingleton<IKafkaConsumer<UserCreatedMessage>>(sp =>
-                sp.GetRequiredService<FakeKafkaConsumer>());
+                sp.GetRequiredService<FakeKafkaConsumer<UserCreatedMessage>>());
 
-            services.AddScoped<KafkaConsumerWorker>();
+            services.AddSingleton<IKafkaConsumer<UserDeletedMessage>>(sp =>
+                sp.GetRequiredService<FakeKafkaConsumer<UserDeletedMessage>>());
+
+            services.AddScoped<UserCreatedKafkaConsumerWorker>();
+            services.AddScoped<UserDeletedKafkaConsumerWorker>();
 
             services
                 .AddAuthentication(options =>
