@@ -70,11 +70,14 @@ spec:
             - name: Jwt__AccessTokenMinutes
               value: "15"
 
-            - name: Kafka__ConsumerTopics__Auth
-              value: "auth"
+            - name: Kafka__ConsumerTopics__UserCreated
+              value: "UserCreated"
+              
+            - name: Kafka__ConsumerTopics__UserDeleted
+              value: "UserDeleted"
 
             - name: Kafka__ConsumerGroupId
-              value: "planara-accounts"
+              value: "svc-accounts"
 
             - name: GraphQL__Name
               value: "GraphQLSchema"
