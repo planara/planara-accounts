@@ -5,6 +5,7 @@ using Planara.Accounts.Data.Domain;
 using Planara.Accounts.Tests.Fakes;
 using Planara.Accounts.Workers;
 using Planara.Common.Kafka;
+using Planara.Common.Kafka.Messages.Auth;
 
 namespace Planara.Accounts.Tests.Api;
 
@@ -51,7 +52,7 @@ public class KafkaConsumerWorkerTests : BaseApiTest
             .AsNoTracking()
             .SingleAsync(x => x.UserId == userId);
 
-        profile.Username.Should().Be("test");
+        profile.Username.Should().Be($"user_{userId:N}");
         profile.DisplayName.Should().Be("test");
         profile.Name.Should().BeNull();
         profile.Surname.Should().BeNull();

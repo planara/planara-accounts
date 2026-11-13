@@ -10,7 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Planara.Accounts.Data;
 using Planara.Accounts.Tests.Fakes;
 using Planara.Accounts.Workers;
-using Planara.Common.Kafka;
+using Planara.Common.Kafka.Messages.Auth;
 using Planara.Kafka.Interfaces;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;

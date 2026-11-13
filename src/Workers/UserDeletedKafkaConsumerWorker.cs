@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Planara.Accounts.Data;
 using Planara.Common.Kafka;
+using Planara.Common.Kafka.Messages.Auth;
 using Planara.Kafka.Interfaces;
 
 namespace Planara.Accounts.Workers;
