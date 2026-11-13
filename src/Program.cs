@@ -11,7 +11,7 @@ using Planara.Common.GraphQL;
 using Planara.Common.GraphQL.Filters;
 using Planara.Common.GraphQL.Fusion;
 using Planara.Common.Host;
-using Planara.Common.Kafka;
+using Planara.Common.Kafka.Messages.Auth;
 using Planara.Common.Validators;
 using Planara.Kafka.Extensions;
 using StackExchange.Redis;

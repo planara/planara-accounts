@@ -4,6 +4,7 @@ using Npgsql;
 using Planara.Accounts.Data;
 using Planara.Accounts.Data.Domain;
 using Planara.Common.Kafka;
+using Planara.Common.Kafka.Messages.Auth;
 using Planara.Kafka.Interfaces;
 
 namespace Planara.Accounts.Workers;
@@ -17,27 +18,24 @@ public class UserCreatedKafkaConsumerWorker(
     protected override string TopicKey => KafkaTopicKeys.UserCreated;
 
     protected override async Task HandleMessage(
-        UserCreatedMessage message,
-        IServiceProvider serviceProvider,
-        CancellationToken cancellationToken)
+        UserCreatedMessage message, IServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            "Kafka: user created message received: userId - {UserId}, email - {Email}",
+        logger.LogInformation( "Kafka: user created message received: userId - {UserId}, email - {Email}", 
             message.UserId, message.Email);
 
         var dataContext = serviceProvider.GetRequiredService<DataContext>();
 
         try
         {
-            var username = message.Email.Split('@')[0];
-
+            var displayName = message.Email.Split('@')[0];
+            
             dataContext.Profiles.Add(new Profile
             {
                 UserId = message.UserId,
-                DisplayName = username,
-                Username = username,
-                Name = null,
-                Surname = null,
+                DisplayName = displayName,
+                Username = $"user_{message.UserId:N}",
+                Name = message.Name,
+                Surname = message.Surname,
                 AvatarUrl = null,
                 Bio = null
             });
@@ -46,9 +44,7 @@ public class UserCreatedKafkaConsumerWorker(
         }
         catch (DbUpdateException e) when (IsUniqueViolation(e))
         {
-            logger.LogInformation(
-                "Profile already exists for userId={UserId}. Skipping.",
-                message.UserId);
+            logger.LogInformation( "Profile already exists for userId={UserId}. Skipping.", message.UserId);
         }
     }
 
